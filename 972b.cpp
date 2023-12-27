@@ -51,6 +51,7 @@ String readResponse(String deviceAddress) {
         }
     }
 
+    // TODO: Figure out what to do here with logging
     // Check for ACK or NAK
     if (response.startsWith("@" + deviceAddress + "ACK")) {
         return response; // Successful response
@@ -143,24 +144,38 @@ void printResponse(const String& response, const String& deviceAddress) {
     }
 }
 
+bool checkForLockError(String response, String deviceAddress) {
+    if (response.startsWith("@" + deviceAddress + "NAK180")) {
+        Serial.println("Error: Transducer is locked. Unlock required to change parameters.");
+        return true; // Indicates a lock error was detected
+    }
+    return false; // No lock error
+}
+
 void setupSetpoint(String deviceAddress, String setPoint, String direction, String hysteresis, String enableMode) {
+    String response;
+
     // Step 1: Set the setpoint value
     sendCommand(deviceAddress, "SP1", setPoint);
-    String response = readResponse(deviceAddress);
+    response = readResponse(deviceAddress);
+    if (checkForLockError(response, deviceAddress)) return;
     printResponse(response, deviceAddress);
 
     // Step 2: Set the setpoint direction (ABOVE/BELOW)
     sendCommand(deviceAddress, "SD1", direction);
-
     response = readResponse(deviceAddress);
+    if (checkForLockError(response, deviceAddress)) return;
     printResponse(response, deviceAddress);
+
     // Step 3: Set the setpoint hysteresis value
     sendCommand(deviceAddress, "SH1", hysteresis);
     response = readResponse(deviceAddress);
+    if (checkForLockError(response, deviceAddress)) return;
     printResponse(response, deviceAddress);
 
     // Step 4: Enable the setpoint
     sendCommand(deviceAddress, "EN1", enableMode);
     response = readResponse(deviceAddress);
+    if (checkForLockError(response, deviceAddress)) return;
     printResponse(response, deviceAddress);
 }
