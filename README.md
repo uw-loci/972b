@@ -1,5 +1,5 @@
 # 972b
-This is a driver library for the 972b Vacuum Pressure Transducer. 
+An Arduino driver library for the 972b Vacuum Pressure Transducer. 
 
 Place the 972b library folder in your arduinosketchfolder/libraries/ folder. You may need to create a library subfolder if you are including your first library. Then you should restart the IDE.
 
