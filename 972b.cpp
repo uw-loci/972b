@@ -179,3 +179,16 @@ void setupSetpoint(String deviceAddress, String setPoint, String direction, Stri
     if (checkForLockError(response, deviceAddress)) return;
     printResponse(response, deviceAddress);
 }
+
+String requestPressure(String deviceAddress, String measureType) {
+    sendCommand(deviceAddress, measureType + "?");
+    String response = readResponse(deviceAddress);
+    return response;
+}
+
+void printPressure(String deviceAddress, String measureType) {
+    sendCommand(deviceAddress, measureType + "?");
+    String response = readResponse(deviceAddress);
+    Serial.println(response);
+}
+

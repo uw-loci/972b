@@ -21,6 +21,7 @@ void printResponse(const String& response, const String& deviceAddress=DEFAULT_A
 void queryRS485Delay(String deviceAddress=DEFAULT_ADDR);
 void printResponse(const String& response, const String& deviceAddress);
 void setupSetpoint(String deviceAddress, String setPoint, String direction, String hysteresis, String enableMode);
-
+String requestPressure(String deviceAddress=DEFAULT_ADDR, String measureType="PR3");
+void printPressure(String deviceAddress=DEFAULT_ADDR, String measureType="PR3");
 
 #endif // _972B_H_
