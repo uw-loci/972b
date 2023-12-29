@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 // Constants
-extern const char* const DEFAULT_ADDR;
+#define DEFAULT_ADDR "253"
 
 // Structure for NAK codes
 struct NAKCode {
@@ -12,16 +12,27 @@ struct NAKCode {
     const char* description;
 };
 
-void sendCommand(String deviceAddress=DEFAULT_ADDR, String command="", String parameter="");
-String decodeNAK(String codeStr);
-String readResponse(String deviceAddress=DEFAULT_ADDR);
-void changeBaudRate(String deviceAddress=DEFAULT_ADDR, String newBaudRate="9600");
-void setRS485Delay(String deviceAddress=DEFAULT_ADDR, String delaySetting="ON");
-void printResponse(const String& response, const String& deviceAddress=DEFAULT_ADDR);
-void queryRS485Delay(String deviceAddress=DEFAULT_ADDR);
-void printResponse(const String& response, const String& deviceAddress);
-void setupSetpoint(String deviceAddress, String setPoint, String direction, String hysteresis, String enableMode);
-String requestPressure(String deviceAddress=DEFAULT_ADDR, String measureType="PR3");
-void printPressure(String deviceAddress=DEFAULT_ADDR, String measureType="PR3");
+class PressureTransducer {
+    public:
+        PressureTransducer(String addr=DEFAULT_ADDR);
+
+        static int getNumNackCodes();
+        void sendCommand(String command="", String parameter="");
+        String readResponse();
+        void changeBaudRate(String newBaudRate="9600");
+        void setRS485Delay(String delaySetting="ON");
+        void printResponse(const String& response);
+        void queryRS485Delay();
+        void setupSetpoint(String setPoint, String direction, String hysteresis, String enableMode);
+        String requestPressure(String measureType="PR3");
+        void printPressure(String measureType="PR3");
+
+    private:
+        String deviceAddress;
+        static NAKCode nakCodes[];
+        String decodeNAK(String codeStr);
+        bool checkForLockError(String response);
+};
+
 
 #endif // _972B_H_

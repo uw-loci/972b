@@ -1,10 +1,11 @@
 #include "972b.h"
 
-const char* const DEFAULT_ADDR = "253";
+PressureTransducer::PressureTransducer(String addr)
+    : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR) {
+}
 
-
-// NACK codes
-NAKCode nakCodes[] = {
+// List of possible NACK codes
+NAKCode PressureTransducer::nakCodes[] = {
     {8, "Zero adjustment at too high pressure"},
     {9, "Atmospheric adjustment at too low pressure"},
     {160, "Unrecognized message"},
@@ -15,8 +16,12 @@ NAKCode nakCodes[] = {
     {195, "Control setpoint enabled (ENC)"}
 };
 
-void sendCommand(String deviceAddress, String command, String parameter) {
-    String fullCommand = "@" + deviceAddress + command;
+int PressureTransducer::getNumNackCodes() {
+    return sizeof(nakCodes) / sizeof(NAKCode);
+}
+
+void PressureTransducer::sendCommand(String command, String parameter) {
+    String fullCommand = "@" + this->deviceAddress + command;
     if (command.endsWith("?")) {  // Query
         fullCommand += ";FF";
     } else {  // Command
@@ -27,7 +32,7 @@ void sendCommand(String deviceAddress, String command, String parameter) {
 }
 
 // Function to find the description for a given NAK code
-String decodeNAK(String codeStr) {
+String PressureTransducer::decodeNAK(String codeStr) {
     int code  = codeStr.toInt(); // Convert the String to an integer
     
     for (unsigned int i = 0; i < sizeof(nakCodes) / sizeof(NAKCode); i++) {
@@ -38,7 +43,7 @@ String decodeNAK(String codeStr) {
     return "Unknown NAK code";  // Return this if the code is not found
 }
 
-String readResponse(String deviceAddress) {
+String PressureTransducer::readResponse() {
     String response = "";
     long startTime = millis();
     while (millis() - startTime < 5000) {  // 5-second timeout for response
@@ -53,16 +58,16 @@ String readResponse(String deviceAddress) {
 
     // TODO: Figure out what to do here with logging
     // Check for ACK or NAK
-    if (response.startsWith("@" + deviceAddress + "ACK")) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         return response; // Successful response
-    } else if (response.startsWith("@" + deviceAddress + "NAK")) {
+    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         return response; // Error in response
     }
 
     return "No valid response"; // No valid response received
 }
 
-void changeBaudRate(String deviceAddress, String newBaudRate) {
+void PressureTransducer::changeBaudRate(String newBaudRate) {
     // Array of valid baud rates
     const long validBaudRates[] = {4800, 9600, 19200, 38400, 57600, 115200, 230400};
     const int numRates = sizeof(validBaudRates) / sizeof(validBaudRates[0]);
@@ -82,12 +87,12 @@ void changeBaudRate(String deviceAddress, String newBaudRate) {
     }
 
     // If the rate is valid, proceed with the command
-    sendCommand(deviceAddress, "BR", newBaudRate);
-    String response = readResponse(deviceAddress);
+    sendCommand("BR", newBaudRate);
+    String response = readResponse();
 
-    if (response.startsWith("@" + deviceAddress + "ACK")) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         Serial.println("Baud rate change successful: " + response);
-    } else if (response.startsWith("@" + deviceAddress + "NAK")) {
+    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         int codeStart = response.indexOf("NAK") + 3;
         int codeEnd = response.indexOf(';', codeStart);
         String codeStr = response.substring(codeStart, codeEnd);
@@ -99,13 +104,13 @@ void changeBaudRate(String deviceAddress, String newBaudRate) {
     }
 }
 
-void setRS485Delay(String deviceAddress, String delaySetting) {
-    sendCommand(deviceAddress, "RSD", delaySetting);
-    String response = readResponse(deviceAddress);
+void PressureTransducer::setRS485Delay(String delaySetting) {
+    sendCommand("RSD", delaySetting);
+    String response = readResponse();
 
-    if (response.startsWith("@" + deviceAddress + "ACK")) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         Serial.println("RS485 Delay setting updated to: " + delaySetting);
-    } else if (response.startsWith("@" + deviceAddress + "NAK")) {
+    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         Serial.println("Error in setting RS485 delay to: " + delaySetting);
         // Additional error handling can be implemented here
     } else {
@@ -113,17 +118,17 @@ void setRS485Delay(String deviceAddress, String delaySetting) {
     }
 }
 
-void queryRS485Delay(String deviceAddress) {
-    sendCommand(deviceAddress, "RSD?");
-    String response = readResponse(deviceAddress);
+void PressureTransducer::queryRS485Delay() {
+    sendCommand("RSD?");
+    String response = readResponse();
 
-    if (response.startsWith("@" + deviceAddress + "ACK")) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         // Extracting the actual delay setting from the response
         int settingStartIndex = response.indexOf("ACK") + 3; // Position after "ACK"
         int settingEndIndex = response.indexOf(';', settingStartIndex);
         String delaySetting = response.substring(settingStartIndex, settingEndIndex);
         Serial.println("Current RS485 Delay Setting: " + delaySetting);
-    } else if (response.startsWith("@" + deviceAddress + "NAK")) {
+    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         Serial.println("Error in querying RS485 delay setting.");
         // Additional error handling can be implemented here
     } else {
@@ -131,64 +136,64 @@ void queryRS485Delay(String deviceAddress) {
     }
 }
 
-void printResponse(const String& response, const String& deviceAddress) {
-    if (response.startsWith("@" + deviceAddress + "ACK")) {
+void PressureTransducer::printResponse(const String& response) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         int settingStartIndex = response.indexOf("ACK") + 3;  // Position after "ACK"
         int settingEndIndex = response.indexOf(';', settingStartIndex);
         String content = response.substring(settingStartIndex, settingEndIndex);
         Serial.println("Response: " + content);
-    } else if (response.startsWith("@" + deviceAddress + "NAK")) {
+    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         Serial.println("Error in response: " + response);
     } else {
         Serial.println("No valid response received.");
     }
 }
 
-bool checkForLockError(String response, String deviceAddress) {
-    if (response.startsWith("@" + deviceAddress + "NAK180")) {
+bool PressureTransducer::checkForLockError(String response) {
+    if (response.startsWith("@" + this->deviceAddress + "NAK180")) {
         Serial.println("Error: Transducer is locked. Unlock required to change parameters.");
         return true; // Indicates a lock error was detected
     }
     return false; // No lock error
 }
 
-void setupSetpoint(String deviceAddress, String setPoint, String direction, String hysteresis, String enableMode) {
+void PressureTransducer::setupSetpoint(String setPoint, String direction, String hysteresis, String enableMode) {
     String response;
 
     // Step 1: Set the setpoint value
-    sendCommand(deviceAddress, "SP1", setPoint);
-    response = readResponse(deviceAddress);
-    if (checkForLockError(response, deviceAddress)) return;
-    printResponse(response, deviceAddress);
+    sendCommand("SP1", setPoint);
+    response = readResponse();
+    if (checkForLockError(response)) return;
+    printResponse(response);
 
     // Step 2: Set the setpoint direction (ABOVE/BELOW)
-    sendCommand(deviceAddress, "SD1", direction);
-    response = readResponse(deviceAddress);
-    if (checkForLockError(response, deviceAddress)) return;
-    printResponse(response, deviceAddress);
+    sendCommand("SD1", direction);
+    response = readResponse();
+    if (checkForLockError(response)) return;
+    printResponse(response);
 
     // Step 3: Set the setpoint hysteresis value
-    sendCommand(deviceAddress, "SH1", hysteresis);
-    response = readResponse(deviceAddress);
-    if (checkForLockError(response, deviceAddress)) return;
-    printResponse(response, deviceAddress);
+    sendCommand("SH1", hysteresis);
+    response = readResponse();
+    if (checkForLockError(response)) return;
+    printResponse(response);
 
     // Step 4: Enable the setpoint
-    sendCommand(deviceAddress, "EN1", enableMode);
-    response = readResponse(deviceAddress);
-    if (checkForLockError(response, deviceAddress)) return;
-    printResponse(response, deviceAddress);
+    sendCommand("EN1", enableMode);
+    response = readResponse();
+    if (checkForLockError(response)) return;
+    printResponse(response);
 }
 
-String requestPressure(String deviceAddress, String measureType) {
-    sendCommand(deviceAddress, measureType + "?");
-    String response = readResponse(deviceAddress);
+String PressureTransducer::requestPressure(String measureType) {
+    sendCommand(measureType + "?");
+    String response = readResponse();
     return response;
 }
 
-void printPressure(String deviceAddress, String measureType) {
-    sendCommand(deviceAddress, measureType + "?");
-    String response = readResponse(deviceAddress);
+void PressureTransducer::printPressure(String measureType) {
+    sendCommand(measureType + "?");
+    String response = readResponse();
     Serial.println(response);
 }
 
