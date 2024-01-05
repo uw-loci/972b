@@ -1,7 +1,8 @@
 #include "972b.h"
 
-PressureTransducer::PressureTransducer(String addr)
-    : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR) {
+PressureTransducer::PressureTransducer(String addr, Stream& serial)
+    : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
+      serialPort(serial) {
 }
 
 // List of possible NACK codes
@@ -27,7 +28,7 @@ void PressureTransducer::sendCommand(String command, String parameter) {
     } else {  // Command
         fullCommand += "!" + parameter + ";FF";
     }
-    Serial2.print(fullCommand);
+    serialPort.print(fullCommand);
     Serial.println("Sent command: " + fullCommand);
 }
 
@@ -55,8 +56,8 @@ String PressureTransducer::readResponse() {
     long startTime = millis();
     
     while (millis() - startTime < responseTimeout && response.length() < maxResponseLength) {  // what
-        if (Serial2.available()) {
-            char c = Serial2.read();
+        if (serialPort.available()) {
+            char c = serialPort.read();
             response += c;
             if (response.endsWith(";FF")) {
                 break;

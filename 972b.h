@@ -19,7 +19,7 @@ struct NACKResult {
 
 class PressureTransducer {
     public:
-        PressureTransducer(String addr=DEFAULT_ADDR);
+        PressureTransducer(String addr=DEFAULT_ADDR, Stream& serial=Serial2);
 
         static int getNumNackCodes();
         void sendCommand(String command="", String parameter="");
@@ -34,6 +34,7 @@ class PressureTransducer {
         void setResponseTimeout(unsigned long timeout);
 
     private:
+        Stream& serialPort;
         String deviceAddress;
         static NAKCode nakCodes[];
         NACKResult decodeNAK(String codeStr);
