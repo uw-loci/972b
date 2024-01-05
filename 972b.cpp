@@ -46,7 +46,8 @@ String PressureTransducer::decodeNAK(String codeStr) {
 String PressureTransducer::readResponse() {
     String response = "";
     long startTime = millis();
-    while (millis() - startTime < 5000) {  // 5-second timeout for response
+    
+    while (millis() - startTime < responseTimeout && response.length() < maxResponseLength) {  // what
         if (Serial2.available()) {
             char c = Serial2.read();
             response += c;
@@ -56,6 +57,10 @@ String PressureTransducer::readResponse() {
         }
     }
 
+    if (response.length() > maxResponseLength && !response.endsWith(";FF")) {
+        Serial.println("Error: Response too long or incomplete.");
+        return "";
+    }
     // TODO: Figure out what to do here with logging
     // Check for ACK or NAK
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
@@ -157,11 +162,11 @@ bool PressureTransducer::checkForLockError(String response) {
     return false; // No lock error
 }
 
-void PressureTransducer::setupSetpoint(String setPoint, String direction, String hysteresis, String enableMode) {
+void PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
     String response;
 
     // Step 1: Set the setpoint value
-    sendCommand("SP1", setPoint);
+    sendCommand("SP1", setpoint);
     response = readResponse();
     if (checkForLockError(response)) return;
     printResponse(response);
@@ -197,3 +202,6 @@ void PressureTransducer::printPressure(String measureType) {
     Serial.println(response);
 }
 
+void PressureTransducer::setResponseTimeout(unsigned long timeout) {
+        responseTimeout = timeout;
+}

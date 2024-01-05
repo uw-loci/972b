@@ -23,15 +23,18 @@ class PressureTransducer {
         void setRS485Delay(String delaySetting="ON");
         void printResponse(const String& response);
         void queryRS485Delay();
-        void setupSetpoint(String setPoint, String direction, String hysteresis, String enableMode);
+        void setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode);
         String requestPressure(String measureType="PR3");
         void printPressure(String measureType="PR3");
+        void setResponseTimeout(unsigned long timeout);
 
     private:
         String deviceAddress;
         static NAKCode nakCodes[];
         String decodeNAK(String codeStr);
         bool checkForLockError(String response);
+        unsigned long responseTimeout = 5000;   // Default timeout (ms)
+        const int maxResponseLength = 256;      // Default maximum response character length
 };
 
 
