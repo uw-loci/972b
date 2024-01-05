@@ -12,6 +12,11 @@ struct NAKCode {
     const char* description;
 };
 
+struct NACKResult {
+    String description;
+    bool found;
+};
+
 class PressureTransducer {
     public:
         PressureTransducer(String addr=DEFAULT_ADDR);
@@ -31,7 +36,7 @@ class PressureTransducer {
     private:
         String deviceAddress;
         static NAKCode nakCodes[];
-        String decodeNAK(String codeStr);
+        NACKResult decodeNAK(String codeStr);
         bool checkForLockError(String response);
         unsigned long responseTimeout = 5000;   // Default timeout (ms)
         const int maxResponseLength = 256;      // Default maximum response character length

@@ -32,15 +32,22 @@ void PressureTransducer::sendCommand(String command, String parameter) {
 }
 
 // Function to find the description for a given NAK code
-String PressureTransducer::decodeNAK(String codeStr) {
+NACKResult PressureTransducer::decodeNAK(String codeStr) {
     int code  = codeStr.toInt(); // Convert the String to an integer
-    
+    NACKResult result;
+    result.found = false;
+
     for (unsigned int i = 0; i < sizeof(nakCodes) / sizeof(NAKCode); i++) {
         if (nakCodes[i].code == code) {
-            return nakCodes[i].description;
+            result.description = nakCodes[i].description;
+            result.found = true;
         }
     }
-    return "Unknown NAK code";  // Return this if the code is not found
+
+    if (!result.found) {
+        result.description = "Unknown NAK code";
+    }
+    return result;
 }
 
 String PressureTransducer::readResponse() {
@@ -101,9 +108,13 @@ void PressureTransducer::changeBaudRate(String newBaudRate) {
         int codeStart = response.indexOf("NAK") + 3;
         int codeEnd = response.indexOf(';', codeStart);
         String codeStr = response.substring(codeStart, codeEnd);
-        String codeDesc = decodeNAK(codeStr);
-
-        Serial.println("Error changing baud rate. NAK code: " + codeStr + " - " + codeDesc);
+        
+        NACKResult nak = decodeNAK(codeStr);
+        if (nak.found) {
+            Serial.println("Error changing the baud rate. NAK code: " + codeStr + " - " + nak.description);
+        } else {
+            Serial.println("Error changing baud rate. Unknown NAK code: " + codeStr);
+        }
     } else {
         Serial.println("No valid response received for baud rate change.");
     }
