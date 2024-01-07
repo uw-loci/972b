@@ -5,6 +5,8 @@
 
 // Constants
 #define DEFAULT_ADDR "253"
+#define DEFAULT_RESPONSE_TIMEOUT 5000
+#define DEFAULT_MAX_RESPONSE_CHARACTER_LENGTH 256
 
 // Structure for NAK codes
 struct NAKCode {
@@ -39,8 +41,8 @@ class PressureTransducer {
         static NAKCode nakCodes[];
         NACKResult decodeNAK(String codeStr);
         bool checkForLockError(String response);
-        unsigned long responseTimeout = 5000;   // Default timeout (ms)
-        const int maxResponseLength = 256;      // Default maximum response character length
+        unsigned long responseTimeout = DEFAULT_RESPONSE_TIMEOUT;           // Default timeout (ms)
+        const int maxResponseLength = DEFAULT_MAX_RESPONSE_CHARACTER_LENGTH;// Default maximum response character length
 };
 
 

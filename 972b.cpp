@@ -1,6 +1,6 @@
 #include "972b.h"
 
-PressureTransducer::PressureTransducer(String addr, Stream& serial)
+PressureTransducer::PressureTransducer(const char* addr, Stream& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
       serialPort(serial) {
 }
