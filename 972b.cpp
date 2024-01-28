@@ -22,6 +22,8 @@ int PressureTransducer::getNumNackCodes() {
 }
 
 void PressureTransducer::sendCommand(String command, String parameter) {
+    command.trim(); // Remove any leading or trailing whitespace
+    
     String fullCommand = "@" + this->deviceAddress + command;
     if (command.endsWith("?")) {  // Query
         fullCommand += ";FF";
@@ -55,18 +57,23 @@ String PressureTransducer::readResponse() {
     String response = "";
     long startTime = millis();
     
-    while (millis() - startTime < responseTimeout && response.length() < maxResponseLength) {  // what
+    while (millis() - startTime < responseTimeout) {
         if (serialPort.available()) {
             char c = serialPort.read();
-            response += c;
-            if (response.endsWith(";FF")) {
-                break;
+            if (response.length() < maxResponseLength) {
+                response += c;
+                if (response.endsWith(";FF")) {
+                    break;
+                }
+            } else {
+                Serial.println("Error: Response too long.");
+                return "";
             }
         }
     }
 
-    if (response.length() > maxResponseLength && !response.endsWith(";FF")) {
-        Serial.println("Error: Response too long or incomplete.");
+    if (!response.endsWith(";FF")) {
+        Serial.println("Error: Incomplete response.");
         return "";
     }
     // TODO: Figure out what to do here with logging
@@ -77,7 +84,8 @@ String PressureTransducer::readResponse() {
         return response; // Error in response
     }
 
-    return "No valid response"; // No valid response received
+    Serial.println("Error: No valid response received.");
+    return ""; // No valid response received
 }
 
 void PressureTransducer::changeBaudRate(String newBaudRate) {
