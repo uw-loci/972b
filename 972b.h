@@ -15,32 +15,32 @@ struct NAKCode {
 };
 
 struct NACKResult {
-    String description;
+    char description[DEFAULT_MAX_RESPONSE_CHARACTER_LENGTH];
     bool found;
 };
 
 class PressureTransducer {
     public:
-        PressureTransducer(String addr=DEFAULT_ADDR, Stream& serial=Serial2);
+        PressureTransducer(const char* addr=DEFAULT_ADDR, Stream& serial=Serial2);
 
         static int getNumNackCodes();
-        void sendCommand(String command="", String parameter="");
-        String readResponse();
-        void changeBaudRate(String newBaudRate="9600");
-        void setRS485Delay(String delaySetting="ON");
-        void printResponse(const String& response);
+        void sendCommand(const char* command="", const char* parameter="");
+        char* readResponse();
+        void changeBaudRate(const char* newBaudRate="9600");
+        void setRS485Delay(const char* delaySetting="ON");
+        void printResponse(const char* response);
         void queryRS485Delay();
-        void setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode);
-        String requestPressure(String measureType="PR3");
-        void printPressure(String measureType="PR3");
+        void setupSetpoint(const char* setpoint, const char* direction, const char* hysteresis, const char* enableMode);
+        char* requestPressure(const char* measureType="PR3");
+        void printPressure(const char* measureType="PR3");
         void setResponseTimeout(unsigned long timeout);
 
     private:
         Stream& serialPort;
-        String deviceAddress;
+        char deviceAddress[4];
         static NAKCode nakCodes[];
-        NACKResult decodeNAK(String codeStr);
-        bool checkForLockError(String response);
+        NACKResult decodeNAK(const char* codeStr);
+        bool checkForLockError(const char* response);
         unsigned long responseTimeout = DEFAULT_RESPONSE_TIMEOUT;           // Default timeout (ms)
         const int maxResponseLength = DEFAULT_MAX_RESPONSE_CHARACTER_LENGTH;// Default maximum response character length
 };
