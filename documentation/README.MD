@@ -1,4 +1,4 @@
-### Construct a sensor
+### Construct a sensor object
 The `PressureTransducer` class is initialized with a constructor that sets up the device for communication.
 
 `PressureTransducer::PressureTransducer(String addr, Stream& serial);`
@@ -8,6 +8,26 @@ Parameters:
  - `serial`: A reference to a Stream object which represents the serial port used for communication with the transducer. 
 The constructor initializes the device with the given address (or defaults to `253` one if not specified) and sets up the specified serial port for communication.
 
+#### Usage
+```
+#include <972b.h>
+
+PressureTransducer sensor; // Instantiate 972b sensor object with default address "253"
+
+void setup() {
+    Serial.begin(9600);   // initialize PC COM interface
+    Serial2.begin(9600);  // initialize UART-RS486 transceiver interface
+
+    String response;
+    
+    sensor.sendCommand("MD?"); // Query device model number
+    response = sensor.readResponse();
+    Serial.println("Model Number: " + response);
+}
+
+void loop() {
+}
+```
 ### Sending Commands
 A wrapper function around `Serial.print()` can be used to send serial queries or commands to the 972b, assuming it’s connected through a UART-RS485 adapter and sent to the correct serial interface.
 
