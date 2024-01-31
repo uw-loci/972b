@@ -1,5 +1,15 @@
+### Construct a sensor
+The `PressureTransducer` class is initialized with a constructor that sets up the device for communication.
+
+`PressureTransducer::PressureTransducer(String addr, Stream& serial);`
+
+Parameters:
+ - `addr`: A String representing the device address. If an empty string is provided, a default address is used.
+ - `serial`: A reference to a Stream object which represents the serial port used for communication with the transducer. 
+The constructor initializes the device with the given address (or defaults to `253` one if not specified) and sets up the specified serial port for communication.
+
 ### Sending Commands
-A wrapper function around the Serial.print() can be used to send serial queries or commands to the 972b, assuming it’s connected through a UART-RS485 adapter and a serial interface is connected.
+A wrapper function around `Serial.print()` can be used to send serial queries or commands to the 972b, assuming it’s connected through a UART-RS485 adapter and sent to the correct serial interface.
 
 `void PressureTransducer::sendCommand(String command, String parameter);`
 
@@ -17,7 +27,7 @@ TODO:
  - Add generic checking to confirm valid command string is passed
 
 ### Receiving a Response
-If the sensor successfully acknowledges the command and responds through the transeiver, the native `Serial.read()` function can be used to read input serial data on `Serial2`. The function waits for a response for a specified timeout duration and processes the response to determine its validity and type.
+If the sensor successfully acknowledges the command and responds through the transeiver, `Serial.read()` can be used to read input serial data on `Serial2`. The function waits for a response for a specified timeout duration and processes the response to determine its validity and type.
 
 `String PressureTransducer::readResponse();`
 
