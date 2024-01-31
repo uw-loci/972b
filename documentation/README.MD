@@ -16,7 +16,7 @@ Example usage [link](https://github.com/mslaffin/972b/blob/main/examples/queryin
 TODO:
  - Add generic checking to confirm valid command string is passed
 
-###Receiving a Response
+### Receiving a Response
 If the sensor successfully acknowledges the command and responds through the transeiver, the native `Serial.read()` function can be used to read input serial data on `Serial2`. The function waits for a response for a specified timeout duration and processes the response to determine its validity and type.
 
 `String PressureTransducer::readResponse();`
