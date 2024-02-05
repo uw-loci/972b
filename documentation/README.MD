@@ -9,7 +9,7 @@ Parameters:
 The constructor initializes the device with the given address (or defaults to `253` one if not specified) and sets up the specified serial port for communication.
 
 #### Usage
-```
+```c
 #include <972b.h>
 
 PressureTransducer sensor; // Instantiate 972b sensor object with default address "253"
