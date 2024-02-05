@@ -38,13 +38,12 @@ This function takes two parameters:
 2. `parameter`: This is an optional parameter that defaults to an empty String. This is used only for commands and not for queries.
 
 Notes:
+ - The default serial port is `Serial2` (pins 18 & 19 on the Arduino Mega). This can be configured to any output stream.
  - `sendCommand` auto inserts the attention character “@” and ends with the termination characters “;FF” (datasheet, pg 13), requiring only the unique command to be passed.
  - The command string is limited to ASCII characters but is case-insensitive
 
 Example usage [link](https://github.com/mslaffin/972b/blob/main/examples/querying/972b_model_number_query/972b_model_number_query.ino):
 
-TODO:
- - Add generic checking to confirm valid command string is passed
 
 ### Receiving a Response
 If the sensor successfully acknowledges the command and responds through the transeiver, `Serial.read()` can be used to read input serial data on `Serial2`. The function waits for a response for a specified timeout duration and processes the response to determine its validity and type.
