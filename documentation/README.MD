@@ -55,3 +55,26 @@ This function takes no parameters and returns:
 
 Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Send Command}
+    B --> C{Wait for Response}
+    C -->|Timeout| D[Log Timeout Error]
+    C -->|Response Received| E{Check Response Start}
+    E -->|ACK| F[Process ACK Response]
+    E -->|NAK| G{Decode NAK}
+    G -->|Known Code| H[Log NAK Error with Description]
+    G -->|Unknown Code| I[Log Unknown NAK Error]
+    F --> J[End]
+    H --> J
+    I --> J
+    D --> J
+
+    classDef startend fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef operation fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef decision fill:#fbf,stroke:#333,stroke-width:2px;
+    class A,B,C,D,E,F,G,H,I,J startend;
+    class B,C operation;
+    class E,G decision;
+```
