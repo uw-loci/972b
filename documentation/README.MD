@@ -56,6 +56,9 @@ This function takes no parameters and returns:
 Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
 
+<details>
+<summary>Communication Flowchart</summary>
+
 ```mermaid
 flowchart TD
     A[Start] --> B{Send Command}
@@ -78,3 +81,4 @@ flowchart TD
     class B,C operation;
     class E,G decision;
 ```
+</details>
