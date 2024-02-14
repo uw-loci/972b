@@ -62,12 +62,48 @@ This function takes no parameters and returns:
 
 Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
-
 </details>
 
 <details>
 <summary>Communication setup</summary>
+
 ### Communication setup
+
+This section details the commands for configuring and querying the communication settings of the 972b transducer. These commands allow for adjusting parameters such as baud rate, device address, and communication delay settings.
+
+
+# Querying Communication Baud Rate
+To query the current baud rate setting, use:
+```c
+sensor.sendCommand("BR?"); // Query current baud rate
+```
+- Response: @xxxACK9600;FF
+- Explanation: Returns the current communication baud rate.
+- The response codes (ACK, NAK) indicate successful or unsuccessful execution of the command, respectively.
+
+# Setting Communication Baud Rate
+To set the communication baud rate, use the following command:
+
+```c
+sensor.changeBaudRate("9600"); // Set baud rate to 9600
+```
+- Explanation: Sets the communication baud rate. Valid options include 4800, 9600, 19200, 38400, 57600, 115200, and 230400.
+
+# Setting Transducer Address
+To set the transducer communication address, use this command:
+```c
+sensor.sendCommand("AD!123"); // Set address to 123
+```
+- Response: @xxxACK123;FF
+- Explanation: Sets the transducer's communication address. Valid addresses range from 001 to 253.
+
+# Setting Communication Delay
+To toggle the communication delay between receiving and transmitting, use:
+```c
+sensor.sendCommand("RSD!OFF"); // Turn off communication delay
+```
+- Response: @xxxACKOFF;FF
+- Explanation: Turns on or off the communication delay between receiving and sending data.
 </details>
 
 <details>
