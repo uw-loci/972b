@@ -1,4 +1,12 @@
-### Construct a sensor object
+### 972b driver documentation
+
+<details>
+<summary>Basic Communication Flowchart</summary>
+### Communication setup
+
+
+
+### Constructing a sensor object
 The `PressureTransducer` class is initialized with a constructor that sets up the device for communication.
 
 `PressureTransducer::PressureTransducer(String addr, Stream& serial);`
@@ -56,9 +64,6 @@ This function takes no parameters and returns:
 Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
 
-<details>
-<summary>Basic Communication Flowchart</summary>
-### Basic Communication setup
 </details>
 
 <details>
@@ -79,13 +84,13 @@ Notes: 
 </details>
 
 <details>
-<summary>###Cold Cathode setup</summary>
+<summary>Cold Cathode setup</summary>
 </details>
 
 <details>
-<summary>###User Switch</summary>
+<summary>User Switch</summary>
 </details>
 
 <details>
-<summary>###Information Setup</summary>
+<summary>Information Setup</summary>
 </details>
