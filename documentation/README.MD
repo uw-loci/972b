@@ -61,7 +61,8 @@ Notes: 
 </details>
 
 <details>
-<summary>### Communication setup</summary>
+<summary>Communication setup</summary>
+### Communication setup
 </details>
 
 <details>
