@@ -178,6 +178,53 @@ sensor.sendCommand("TIM?"); // Query time on
 - Example response: `@xxxACK137;FF`
 - Explanation: Responds with the number of hours the device has been in operation.
 
+## Querying hours of operation (cold cathode high voltage)
+To query the number of hours the CC sensor been on, use:
+```c
+sensor.sendCommand("TIM2?"); // Query cold cathode time on
+```
+- Example response: `@xxxACK12;FF`
+- Explanation: Responds with the number of hours the cold cathode sensor has been in operation.
+
+## Querying the Cold Cathode "pressure dose"
+To query the Cold Cathode time-on as a function of the pressure, use:
+```c
+sensor.sendCommand("TIM3?"); // Query cold cathode pressure dose
+```
+- Example response: `@xxxACK1.00E-2;FF`
+- Explanation: Responds with an indicator that can be used to determine when maintenance and service are required. If the cold cathode is on for 100 hours at 1E-4 Torr the pressure dose is 100×1E-4 = 1E-2 Torr hours. 
+
+## Querying the MicroPirani sensor temperature
+To query the MicroPirani sensor temperature, use:
+```c
+sensor.sendCommand("TEM?"); // Query MicroPirani temperature
+```
+- Example response: `@xxxACK2.50E+1;FF`
+- Explanation: Responds with the temperature of the MicroPirani sensor.
+
+## Querying the User-Programmed Tag
+To query the user-programmed sensor tag, use:
+```c
+sensor.sendCommand("UT?"); // Query user tag
+```
+- Example response: `@xxxACKLINECTRA1;FF`
+- Explanation: Responds with the user programmed text string.
+
+## Set the User Tag
+To set the user-defined sensor tag, use:
+```c
+sensor.sendCommand("UT!LINECTRA1"); // Set user tag
+```
+- Example response: `@xxxACKLINECTRA1;FF`
+- Explanation: Responds with the user programmed text string.
+
+## Perform a sensor status check
+To perform a basic status check, use:
+```c
+sensor.sendCommand("T?"); // Status check
+```
+- Expected response: `@xxxACKO;FF`
+- Explanation: Responds with a basic check for communication purposes.
 
 </details>
 
