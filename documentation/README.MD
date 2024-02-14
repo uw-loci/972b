@@ -57,7 +57,8 @@ Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
 
 <details>
-<summary>### Basic Communication Flowchart</summary>
+<summary>Basic Communication Flowchart</summary>
+### Basic Communication setup
 </details>
 
 <details>
@@ -66,15 +67,15 @@ Notes: 
 </details>
 
 <details>
-<summary>###Pressure Reading</summary>
+<summary>Pressure Reading</summary>
 </details>
 
 <details>
-<summary>###Setpoint Information</summary>
+<summary>Setpoint Information</summary>
 </details>
 
 <details>
-<summary>###Calibration and Adjustment</summary>
+<summary>Calibration and Adjustment</summary>
 </details>
 
 <details>
