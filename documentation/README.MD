@@ -1,6 +1,8 @@
 # 972b driver documentation
 
-## Basic Communication
+
+
+# Basic Communication Flow
 This section outlines the fundamental steps for establishing communication with a pressure transducer using the `PressureTransducer` class defined in this library. 
 <details>
 <summary>Read more about Communication Flow</summary>
@@ -66,67 +68,139 @@ Notes: 
 
 
 
-## Communication setup
+# Communication Setup
 This section provides an overview of configuring and querying the 972b transducer's communication settings, including baud rate, device address, and communication delay.
 <details>
-<summary>Communication setup</summary>
+<summary>Read more about Communication Setup</summary>
 
 This section details the commands for configuring and querying the communication settings of the 972b transducer. These commands allow for adjusting parameters such as baud rate, device address, and communication delay settings.
 
 
-# Querying Communication Baud Rate
+## Querying Communication Baud Rate
 To query the current baud rate setting, use:
 ```c
 sensor.sendCommand("BR?"); // Query current baud rate
 ```
-- Response: @xxxACK9600;FF
+- Expected response: `@xxxACK9600;FF`
 - Explanation: Returns the current communication baud rate.
 - The response codes (ACK, NAK) indicate successful or unsuccessful execution of the command, respectively.
 
-# Setting Communication Baud Rate
+## Setting Communication Baud Rate
 To set the communication baud rate, use the following command:
 ```c
 sensor.changeBaudRate("9600"); // Set baud rate to 9600
 ```
 - Explanation: Sets the communication baud rate. Valid options include 4800, 9600, 19200, 38400, 57600, 115200, and 230400.
 
-# Setting Transducer Address
+## Setting Transducer Address
 To set the transducer communication address, use this command:
 ```c
 sensor.sendCommand("AD!123"); // Set address to 123
 ```
-- Response: @xxxACK123;FF
+- Expected response: `@xxxACK123;FF`
 - Explanation: Sets the transducer's communication address. Valid addresses range from 001 to 253.
 
-# Setting Communication Delay
+## Setting Communication Delay
 To toggle the communication delay between receiving and transmitting, use:
 ```c
 sensor.sendCommand("RSD!OFF"); // Turn off communication delay
 ```
-- Response: @xxxACKOFF;FF
+- Expected response: `@xxxACKOFF;FF`
 - Explanation: Turns on or off the communication delay between receiving and sending data.
 </details>
 
+# Transducer Information
+This section provides examples of querying the status, model, and version information of the sensor system. Details are provided on viewing the device's operational lifetime programming a custom user tag.
 <details>
-<summary>Pressure Reading</summary>
+<summary>Read more about Transducer Information</summary>
+
+## Querying the Model Number (972B)
+To query the system model number, use:
+```c
+sensor.sendCommand("MD?"); // Query model number
+```
+- Expected response: `@xxxACK972B;FF`
+- Explanation: Responds with the device model number.
+
+## Querying the Device type name (MicroPirani)
+To query the device type name, use:
+```c
+sensor.sendCommand("DT?"); // Query device type
+```
+- Expected response: `@xxxACKDualMag;FF`
+- Explanation: Responds with the device sensor type.
+
+## Querying the Manufacturer Name
+To query the manufacturer name, use:
+```c
+sensor.sendCommand("MF?"); // Query manufacturer name
+```
+- Expected response: `@xxxACKMKS;FF`
+- Explanation: Responds with the Manufacturer name (MKS Instruments).
+
+## Querying the Hardware version
+To query the hardware version, use:
+```c
+sensor.sendCommand("HV?"); // Query hardware version
+```
+- Example response: `@xxxACKA;FF`
+- Explanation: Responds with the hardware version.
+
+## Querying the Firmware version
+To query the firmware version, use:
+```c
+sensor.sendCommand("FV?"); // Query firmware version
+```
+- Example response: `@xxxACK1.12;FF`
+- Explanation: Responds with the firmware version.
+
+## Querying the Serial number
+To query the serial number, use:
+```c
+sensor.sendCommand("SN?"); // Query serial number
+```
+- Example response: `@xxxACK08350123456;FF`
+- Explanation: Responds with the serial number.
+
+## Querying device switch enable status
+To query if device switch is enabled, use:
+```c
+sensor.sendCommand("SW?"); // Query enable status of device Switch
+```
+- Expected response: `@xxxACKON;FF`
+- Explanation: Responds with the switch enable status. (ON - Enabled)
+
+## Querying hours of operation
+To query the number of hours the device has been on, use:
+```c
+sensor.sendCommand("TIM?"); // Query time on
+```
+- Example response: `@xxxACK137;FF`
+- Explanation: Responds with the number of hours the device has been in operation.
+
+
 </details>
 
 <details>
-<summary>Setpoint Information</summary>
+<summary>Read more about Pressure Reading</summary>
 </details>
 
 <details>
-<summary>Calibration and Adjustment</summary>
+<summary>Read more about Setpoint Information</summary>
 </details>
 
 <details>
-<summary>Cold Cathode setup</summary>
+<summary>Read more about Calibration and Adjustment</summary>
 </details>
 
 <details>
-<summary>User Switch</summary>
+<summary>Read more about Cold Cathode setup</summary>
 </details>
 
 <details>
-<summary>Information Setup</summary>
+<summary>Read more about User Switch</summary>
+</details>
+
+<details>
+<summary>Read more about Information Setup</summary>
 </details>
