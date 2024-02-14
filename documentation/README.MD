@@ -1,9 +1,9 @@
-### 972b driver documentation
+# 972b driver documentation
 
+## Basic Communication
+This section outlines the fundamental steps for establishing communication with a pressure transducer using the `PressureTransducer` class defined in this library. 
 <details>
-<summary>Communication Flow</summary>
-
-### Basic Communication setup
+<summary>Read more about Communication Flow</summary>
 
 ### Constructing a sensor object
 The `PressureTransducer` class is initialized with a constructor that sets up the device for communication.
@@ -64,10 +64,12 @@ Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
 </details>
 
+
+
+## Communication setup
+This section provides an overview of configuring and querying the 972b transducer's communication settings, including baud rate, device address, and communication delay.
 <details>
 <summary>Communication setup</summary>
-
-### Communication setup
 
 This section details the commands for configuring and querying the communication settings of the 972b transducer. These commands allow for adjusting parameters such as baud rate, device address, and communication delay settings.
 
@@ -83,7 +85,6 @@ sensor.sendCommand("BR?"); // Query current baud rate
 
 # Setting Communication Baud Rate
 To set the communication baud rate, use the following command:
-
 ```c
 sensor.changeBaudRate("9600"); // Set baud rate to 9600
 ```
