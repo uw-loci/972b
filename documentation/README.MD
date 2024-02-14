@@ -1,10 +1,9 @@
 ### 972b driver documentation
 
 <details>
-<summary>Basic Communication Flowchart</summary>
-### Communication setup
+<summary>Communication Flow</summary>
 
-
+### Basic Communication setup
 
 ### Constructing a sensor object
 The `PressureTransducer` class is initialized with a constructor that sets up the device for communication.
