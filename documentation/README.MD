@@ -57,11 +57,11 @@ Notes: 
  - The timeout duration is arbitrary, and may need to be adjusted 
 
 <details>
-<summary>###Basic Communication Flowchart</summary>
+<summary>### Basic Communication Flowchart</summary>
 </details>
 
 <details>
-<summary>###Communication setup</summary>
+<summary>### Communication setup</summary>
 </details>
 
 <details>
