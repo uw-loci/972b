@@ -228,8 +228,22 @@ sensor.sendCommand("T?"); // Status check
 
 </details>
 
+# Pressure Reading
+The 972B transducer outputs pressure readings through several predefined queries, offering measurements from a MicroPirani sensor, Cold Cathode sensor, or a combination of both. The digital output is presented in scientific notation, with 3 digits for PR1, PR3, PR5 readings, and 4 digits for PR4 readings.
+
 <details>
-<summary>Read more about Pressure Reading</summary>
+<summary>Read more about Pressure Readings</summary>
+
+## MicroPirani Sensor Reading (PR1)
+The 972b 'MicroPirani' sensor performs a pressure measurement based on thermal conductivity and thus requires calibration for specific gas concentrations.
+
+To perform a basic status check, use:
+```c
+sensor.sendCommand("T?"); // Status check
+```
+- Expected response: `@xxxACKO;FF`
+- Explanation: Responds with a basic check for communication purposes.
+
 </details>
 
 <details>
