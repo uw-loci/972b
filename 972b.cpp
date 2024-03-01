@@ -213,6 +213,17 @@ void PressureTransducer::setupSetpoint(String setpoint, String direction, String
 String PressureTransducer::requestPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
+
+    // Extracting the pressure value from the response
+    int startIdx = response.indexOf("ACK") + 3;
+    int endIdx = response.indexOf(';', startIdx);
+    if (startIdx > 2 && endIdx > startIdx) {
+        String pressureStr = response.substring(startIdx, endIdx);
+        double pressure = pressureStr.toDouble();
+        return pressure;
+    } else {
+        return -1.0;
+    }
     return response;
 }
 
