@@ -210,16 +210,21 @@ void PressureTransducer::setupSetpoint(String setpoint, String direction, String
     printResponse(response);
 }
 
-String PressureTransducer::requestPressure(String measureType) {
+double PressureTransducer::requestPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
+
+    // Error checking
+    if (response.indexOf("NAK") != -1){
+        return -1.0; // Error detected
+    }
 
     // Extracting the pressure value from the response
     int startIdx = response.indexOf("ACK") + 3;
     int endIdx = response.indexOf(';', startIdx);
     if (startIdx > 2 && endIdx > startIdx) {
         String pressureStr = response.substring(startIdx, endIdx);
-        double pressure = pressureStr.toDouble();
+        double pressure = pressureStr.toDouble(); // this method can convert scientific notation to a double representation
         return pressure;
     } else {
         return -1.0;
