@@ -24,6 +24,7 @@ class PressureTransducer {
         static int getNumNackCodes();
         void sendCommand(String command="", String parameter="");
         String readResponse();
+        bool status();
         void changeBaudRate(String newBaudRate="9600");
         void setRS485Delay(String delaySetting="ON");
         void printResponse(const String& response);

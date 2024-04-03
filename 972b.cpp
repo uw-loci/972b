@@ -88,6 +88,13 @@ String PressureTransducer::readResponse() {
     return ""; // No valid response received
 }
 
+bool PressureTransducer::status() {
+    // Query transducer status
+    sendCommand("T?");
+    String response = readResponse();
+    return response.startsWith("@" + this->deviceAddress + "ACK");
+}
+
 void PressureTransducer::changeBaudRate(String newBaudRate) {
     // Array of valid baud rates
     const long validBaudRates[] = {4800, 9600, 19200, 38400, 57600, 115200, 230400};
