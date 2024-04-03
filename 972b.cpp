@@ -205,10 +205,8 @@ void PressureTransducer::setupSetpoint(String setpoint, String direction, String
     printResponse(response);
 
     // Step 3: Set the setpoint hysteresis value
-    sendCommand("SH1", hysteresis);
-    response = readResponse();
-    if (checkForLockError(response)) return;
-    printResponse(response);
+    // The default value is +/- 10% of setpoint value,
+    // so this is not explicitly commanded here.
 
     // Step 4: Enable the setpoint
     sendCommand("EN1", enableMode);
@@ -247,4 +245,32 @@ void PressureTransducer::printPressure(String measureType) {
 
 void PressureTransducer::setResponseTimeout(unsigned long timeout) {
         responseTimeout = timeout;
+}
+
+String PressureTransducer::setPressureUnits(String units) {
+    sendCommand("U", "MBAR");
+    String response = readResponse();
+    printResponse(response); // for debugging
+    
+    // Check for NAK in the response
+    if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+        int codeStart = response.indexOf("NAK") + 3;
+        int codeEnd = response.indexOf(';', codeStart);
+        String codeStr = response.substring(codeStart, codeEnd);
+
+        NACKResult nak = decodeNAK(codeStr);
+        if (nak.found) {
+            // Return both the NAK code and its description
+            return "NAK code: " + codeStr + " - " + nak.description;
+        } else {
+            // Return the NAK code with an unknown description
+            return "Unknown NAK code: " + codeStr;
+        }
+    } else if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+        // Return success message or specific acknowledgment content
+        return "Unit set to " + units + " successfully.";
+    } else {
+        // Return error message if response is not valid
+        return "Error: No valid response received.";
+    }
 }
