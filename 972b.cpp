@@ -248,22 +248,23 @@ void PressureTransducer::printPressure(String measureType) {
 CommandResult PressureTransducer::setPressureUnits(String units) {
 
     String command = "U"; // datasheet p.43
+    CommandResult result;
+
     sendCommand(command, units);
     String response = readResponse();
+
     Serial.print("Sent command: ")
     Serial.println(response);
 
-    CommandResult result;
-
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
-        result.outcome = true; // Indicate success
+        result.outcome = true; // Indicate success to caller
 
         // Extract output from response
         int startIndex = response.indexOf("ACK");
         int endIndex = response.indexOf(';', startIndex);
-        result.resultStr = response.substring(startIndex, endIndex);
+        result.resultStr = response.substring(startIndex, endIndex); // for the LCD
     } else {
-        result.outcome = false; // Indicate failure
+        result.outcome = false; // Indicate failure to caller
 
         if (response.startsWith("@" + this->deviceAddress + "NAK")) {
             // Extract output from response
@@ -286,7 +287,19 @@ CommandResult PressureTransducer::setUserTag(String tag) {
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = SUCCESS;
+    } else {
+        result.outcome = false; // Indicate failure to caller
+
+        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+            // Extract output from response
+            int startIndex = response.indexOf("NAK");
+            int endIndex = response.indexOf(';', startIndex);
+            result.resultStr = response.substring(startIndex, endIndex);
+        } else {
+            response.resultStr = "UnknownErr"; // unrecognized error
+        }
     }
+    return result;
 }
 
 void PressureTransducer::setResponseTimeout(unsigned long timeout) {
