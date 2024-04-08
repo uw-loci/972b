@@ -17,6 +17,11 @@ struct NACKResult {
     bool found;
 };
 
+struct CommandResult {
+    bool outcome;
+    String resultStr;
+}
+
 class PressureTransducer {
     public:
         PressureTransducer(String addr=DEFAULT_ADDR, Stream& serial=Serial2);

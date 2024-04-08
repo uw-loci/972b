@@ -25,9 +25,9 @@ void PressureTransducer::sendCommand(String command, String parameter) {
     command.trim(); // Remove any leading or trailing whitespace
     
     String fullCommand = "@" + this->deviceAddress + command;
-    if (command.endsWith("?")) {  // Query
+    if (command.endsWith("?")) {  // it's a Query
         fullCommand += ";FF";
-    } else {  // Command
+    } else {  // it's a Command
         fullCommand += "!" + parameter + ";FF";
     }
     serialPort.print(fullCommand);
@@ -205,8 +205,10 @@ void PressureTransducer::setupSetpoint(String setpoint, String direction, String
     printResponse(response);
 
     // Step 3: Set the setpoint hysteresis value
-    // The default value is +/- 10% of setpoint value,
-    // so this is not explicitly commanded here.
+    sendCommand("SH1", hysteresis);
+    response = readResponse();
+    if (checkForLockError(response)) return;
+    printResponse(response);
 
     // Step 4: Enable the setpoint
     sendCommand("EN1", enableMode);
@@ -232,7 +234,7 @@ double PressureTransducer::requestPressure(String measureType) {
         double pressure = pressureStr.toDouble(); // this method can convert scientific notation to a double representation
         return pressure;
     } else {
-        return -1.0;
+        return -1.0; // TODO: develop labview interface
     }
     return response;
 }
@@ -243,34 +245,51 @@ void PressureTransducer::printPressure(String measureType) {
     Serial.println(response);
 }
 
+CommandResult PressureTransducer::setPressureUnits(String units) {
+
+    String command = "U"; // datasheet p.43
+    sendCommand(command, units);
+    String response = readResponse();
+    Serial.print("Sent command: ")
+    Serial.println(response);
+
+    CommandResult result;
+
+    if (response.startsWith("@" + this->deviceAddress + "ACK")){
+        result.outcome = true; // Indicate success
+
+        // Extract output from response
+        int startIndex = response.indexOf("ACK");
+        int endIndex = response.indexOf(';', startIndex);
+        result.resultStr = response.substring(startIndex, endIndex);
+    } else {
+        result.outcome = false; // Indicate failure
+
+        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+            // Extract output from response
+            int startIndex = response.indexOf("NAK");
+            int endIndex = response.indexOf(';', startIndex);
+            result.resultStr = response.substring(startIndex, endIndex);
+        } else {
+            response.resultStr = "UnknownErr"; // unrecognized error
+        }
+    }
+    return result;
+}
+
+CommandResult PressureTransducer::setUserTag(String tag) {
+    String command = "UT!";
+    sendCommand(command, tag);
+    String response = readResponse();
+
+    CommandResult result;
+
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+        result.outcome = SUCCESS;
+    }
+}
+
 void PressureTransducer::setResponseTimeout(unsigned long timeout) {
         responseTimeout = timeout;
 }
 
-String PressureTransducer::setPressureUnits(String units) {
-    sendCommand("U", "MBAR");
-    String response = readResponse();
-    printResponse(response); // for debugging
-    
-    // Check for NAK in the response
-    if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        int codeStart = response.indexOf("NAK") + 3;
-        int codeEnd = response.indexOf(';', codeStart);
-        String codeStr = response.substring(codeStart, codeEnd);
-
-        NACKResult nak = decodeNAK(codeStr);
-        if (nak.found) {
-            // Return both the NAK code and its description
-            return "NAK code: " + codeStr + " - " + nak.description;
-        } else {
-            // Return the NAK code with an unknown description
-            return "Unknown NAK code: " + codeStr;
-        }
-    } else if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        // Return success message or specific acknowledgment content
-        return "Unit set to " + units + " successfully.";
-    } else {
-        // Return error message if response is not valid
-        return "Error: No valid response received.";
-    }
-}
