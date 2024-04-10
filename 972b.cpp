@@ -248,7 +248,7 @@ void PressureTransducer::printPressure(String measureType) {
 CommandResult PressureTransducer::setPressureUnits(String units) {
 
     String command = "U"; // datasheet p.43
-    CommandResult result;
+    CommandResult result; // info to return to caller
 
     sendCommand(command, units);
     String response = readResponse();
@@ -257,14 +257,14 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
     Serial.println(response);
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
-        result.outcome = true; // Indicate success to caller
+        result.outcome = true; // Indicate success
 
         // Extract output from response
         int startIndex = response.indexOf("ACK");
         int endIndex = response.indexOf(';', startIndex);
         result.resultStr = response.substring(startIndex, endIndex); // for the LCD
     } else {
-        result.outcome = false; // Indicate failure to caller
+        result.outcome = false; // Indicate failure to function caller
 
         if (response.startsWith("@" + this->deviceAddress + "NAK")) {
             // Extract output from response
@@ -279,7 +279,7 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
 }
 
 CommandResult PressureTransducer::setUserTag(String tag) {
-    String command = "UT!";
+    String command = "UT";
     sendCommand(command, tag);
     String response = readResponse();
 
