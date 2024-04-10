@@ -90,9 +90,29 @@ String PressureTransducer::readResponse() {
 
 bool PressureTransducer::status() {
     // Query transducer status
+    CommandResult result; // info to return to caller
+
     sendCommand("T?");
     String response = readResponse();
-    return response.startsWith("@" + this->deviceAddress + "ACK");
+
+    if (response.startsWith("@" + this->deviceAddress + "ACK")){
+        result.outcome = true
+        int startIndex = response.indexOf("ACK");
+        int endIndex = response.indexOf(';', startIndex);
+        result.resultStr = response.substring(startIndex, endIndex); // for the LCD
+    } else {
+        result.outcome = false; // Indicate failure to function caller
+        
+        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+            // Extract output from response
+            int startIndex = response.indexOf("NAK");
+            int endIndex = response.indexOf(';', startIndex);
+            result.resultStr = response.substring(startIndex, endIndex);
+        } else {
+            response.resultStr = "UnknownErr"; // unrecognized error
+        }
+    }
+    return result;
 }
 
 void PressureTransducer::changeBaudRate(String newBaudRate) {
@@ -252,9 +272,6 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
 
     sendCommand(command, units);
     String response = readResponse();
-
-    Serial.print("Sent command: ")
-    Serial.println(response);
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true; // Indicate success
