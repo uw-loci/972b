@@ -289,7 +289,7 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
             int endIndex = response.indexOf(';', startIndex);
             result.resultStr = response.substring(startIndex, endIndex);
         } else {
-            response.resultStr = "UnknownErr"; // unrecognized error
+            response.resultStr = "UnknwnErr"; // unrecognized error
         }
     }
     return result;
