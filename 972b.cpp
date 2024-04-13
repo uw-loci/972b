@@ -88,8 +88,7 @@ String PressureTransducer::readResponse() {
     return ""; // No valid response received
 }
 
-bool PressureTransducer::status() {
-    // Query transducer status
+CommandResult PressureTransducer::status() {
     CommandResult result; // info to return to caller
 
     sendCommand("T?");
@@ -97,20 +96,10 @@ bool PressureTransducer::status() {
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true
-        int startIndex = response.indexOf("ACK");
-        int endIndex = response.indexOf(';', startIndex);
-        result.resultStr = response.substring(startIndex, endIndex); // for the LCD
+        result.resultStr = parseResponse(response); // to print on the LCD
     } else {
         result.outcome = false; // Indicate failure to function caller
-        
-        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-            // Extract output from response
-            int startIndex = response.indexOf("NAK");
-            int endIndex = response.indexOf(';', startIndex);
-            result.resultStr = response.substring(startIndex, endIndex);
-        } else {
-            response.resultStr = "UnknownErr"; // unrecognized error
-        }
+        result.resultStr = parseResponse(response); // to print on the LCD
     }
     return result;
 }
@@ -209,34 +198,47 @@ bool PressureTransducer::checkForLockError(String response) {
     return false; // No lock error
 }
 
-void PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
-    String response;
+CommandResult PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
+    CommandResult result;
 
     // Step 1: Set the setpoint value
     sendCommand("SP1", setpoint);
-    response = readResponse();
-    if (checkForLockError(response)) return;
-    printResponse(response);
+    String response = readResponse();
+    if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
+        result.outcome = false;
+        result.resultStr = parseError(response);
+        return result;
+    }
 
     // Step 2: Set the setpoint direction (ABOVE/BELOW)
     sendCommand("SD1", direction);
     response = readResponse();
-    if (checkForLockError(response)) return;
-    printResponse(response);
+    if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
+        result.outcome = false;
+        result.resultStr = parseError(response);
+        return result;
+    }
 
     // Step 3: Set the setpoint hysteresis value
     sendCommand("SH1", hysteresis);
     response = readResponse();
-    if (checkForLockError(response)) return;
-    printResponse(response);
+    if (!response.startsWith("@" + this->deviceAddress + "ACK")){
+        result.outcome = false;
+        result.resultStr = parseError(response);
+        return result;
+    }
 
     // Step 4: Enable the setpoint
     sendCommand("EN1", enableMode);
     response = readResponse();
-    if (checkForLockError(response)) return;
-    printResponse(response);
+    if (!response.startsWith("@" + this->deviceAddress + "ACK")){
+        result.outcome = false;
+        result.resultStr = parseError(response);
+        return result;
+    }
 }
 
+// TODO: think about this function
 double PressureTransducer::requestPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
@@ -265,6 +267,21 @@ void PressureTransducer::printPressure(String measureType) {
     Serial.println(response);
 }
 
+String PressureTransducer::parseResponse(const String& response) {
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+        int startIndex = response.indexOf("ACK") + 3; // Add three to move past "ACK"
+        int endIndex = response.indexOf(';', startIndex);
+        return response.substring(startIndex, endIndex);
+    }
+    if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+        int startIndex = response.indexOf("NAK") + 3; // Add three to move past "NAK"
+        int endIndex = response.indexOf(';', startIndex);
+        return response.substring(startIndex, endIndex);
+    } else {
+        return "UnknownErr"; // unrecognized error
+    }
+}
+
 CommandResult PressureTransducer::setPressureUnits(String units) {
 
     String command = "U"; // datasheet p.43
@@ -275,11 +292,7 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true; // Indicate success
-
-        // Extract output from response
-        int startIndex = response.indexOf("ACK");
-        int endIndex = response.indexOf(';', startIndex);
-        result.resultStr = response.substring(startIndex, endIndex); // for the LCD
+        result.resultStr = parseResponse(response);
     } else {
         result.outcome = false; // Indicate failure to function caller
 

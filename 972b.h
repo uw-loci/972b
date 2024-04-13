@@ -29,16 +29,18 @@ class PressureTransducer {
         static int getNumNackCodes();
         void sendCommand(String command="", String parameter="");
         String readResponse();
-        bool status();
+        CommandResult status();
         void changeBaudRate(String newBaudRate="9600");
         void setRS485Delay(String delaySetting="ON");
         void printResponse(const String& response);
         void queryRS485Delay();
-        void setupSetpoint(String setpoint, String direction, String hysteresis="", String enableMode);
+        CommandResult setupSetpoint(String setpoint, String direction, String hysteresis="", String enableMode);
         String requestPressure(String measureType="PR3");
         void printPressure(String measureType="PR3");
+        String PressureTransducer::parseError(const String& response);
         void setResponseTimeout(unsigned long timeout);
-        void setPressureUnits(String units="MBAR");
+        CommandResult setPressureUnits(String units="MBAR");
+        CommandResult setUserTag(String tag="EBEAM1");
 
     private:
         Stream& serialPort;
