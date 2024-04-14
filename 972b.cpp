@@ -77,15 +77,7 @@ String PressureTransducer::readResponse() {
         return "";
     }
     // TODO: Figure out what to do here with logging
-    // Check for ACK or NAK
-    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        return response; // Successful response
-    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        return response; // Error in response
-    }
-
-    Serial.println("Error: No valid response received.");
-    return ""; // No valid response received
+    return response;
 }
 
 CommandResult PressureTransducer::status() {
@@ -96,10 +88,10 @@ CommandResult PressureTransducer::status() {
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true
-        result.resultStr = parseResponse(response); // to print on the LCD
+        result.displayStr = parseResponse(response); // to print on the LCD
     } else {
         result.outcome = false; // Indicate failure to function caller
-        result.resultStr = parseResponse(response); // to print on the LCD
+        result.displayStr = parseResponse(response); // to print on the LCD
     }
     return result;
 }
@@ -108,9 +100,9 @@ void PressureTransducer::changeBaudRate(String newBaudRate) {
     // Array of valid baud rates
     const long validBaudRates[] = {4800, 9600, 19200, 38400, 57600, 115200, 230400};
     const int numRates = sizeof(validBaudRates) / sizeof(validBaudRates[0]);
-
-    // Check if the new BaudRate is valid
     bool isValidRate = false;
+
+    // Check if rate is valid
     for (int i = 0; i < numRates; i++) {
         if (newBaudRate.toInt() == validBaudRates[i]) {
             isValidRate = true;
@@ -123,39 +115,27 @@ void PressureTransducer::changeBaudRate(String newBaudRate) {
         return;
     }
 
-    // If the rate is valid, proceed with the command
+    // Proceed with the command
     sendCommand("BR", newBaudRate);
     String response = readResponse();
+    String parsedResponse = parseResponse(response);
 
-    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        Serial.println("Baud rate change successful: " + response);
-    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        int codeStart = response.indexOf("NAK") + 3;
-        int codeEnd = response.indexOf(';', codeStart);
-        String codeStr = response.substring(codeStart, codeEnd);
-        
-        NACKResult nak = decodeNAK(codeStr);
-        if (nak.found) {
-            Serial.println("Error changing the baud rate. NAK code: " + codeStr + " - " + nak.description);
-        } else {
-            Serial.println("Error changing baud rate. Unknown NAK code: " + codeStr);
-        }
+    if (!parsedResponse.startsWith("Error")) {
+        Serial.println("Baud rate change successful: " + parsedResponse);
     } else {
-        Serial.println("No valid response received for baud rate change.");
+        Serial.println(parsedResponse);  // Print error message handled by parseResponse
     }
 }
 
 void PressureTransducer::setRS485Delay(String delaySetting) {
     sendCommand("RSD", delaySetting);
     String response = readResponse();
+    String parsedResponse = parseResponse(response);
 
-    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+    if (!parsedResponse.startsWith("Error")) {
         Serial.println("RS485 Delay setting updated to: " + delaySetting);
-    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        Serial.println("Error in setting RS485 delay to: " + delaySetting);
-        // Additional error handling can be implemented here
     } else {
-        Serial.println("No valid response received for setting RS485 delay.");
+        Serial.println(parsedResponse);
     }
 }
 
@@ -163,30 +143,41 @@ void PressureTransducer::queryRS485Delay() {
     sendCommand("RSD?");
     String response = readResponse();
 
-    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        // Extracting the actual delay setting from the response
-        int settingStartIndex = response.indexOf("ACK") + 3; // Position after "ACK"
-        int settingEndIndex = response.indexOf(';', settingStartIndex);
-        String delaySetting = response.substring(settingStartIndex, settingEndIndex);
-        Serial.println("Current RS485 Delay Setting: " + delaySetting);
-    } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        Serial.println("Error in querying RS485 delay setting.");
-        // Additional error handling can be implemented here
+    if (!parsedResponse.startsWith("Error")) {
+        Serial.println("Current RS485 Delay Setting: " + parsedResponse);
     } else {
-        Serial.println("No valid response received for RS485 delay query.");
+        Serial.println(parsedResponse);  // Print error messages handled by parseResponse
     }
 }
 
-void PressureTransducer::printResponse(const String& response) {
+void PressureTransducer::printResponse(const String& response) { // to serial
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        int settingStartIndex = response.indexOf("ACK") + 3;  // Position after "ACK"
+        int settingStartIndex = response.indexOf("ACK") + 3;
         int settingEndIndex = response.indexOf(';', settingStartIndex);
-        String content = response.substring(settingStartIndex, settingEndIndex);
-        Serial.println("Response: " + content);
+        if (settingEndIndex != -1) {
+            String content = response.substring(settingStartIndex, settingEndIndex);
+            Serial.println("ACK Response: " + content);
+        } else {
+            Serial.println("Malformed ACK response: missing ';' terminator.");
+        }
     } else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        Serial.println("Error in response: " + response);
+        int codeStartIndex = response.indexOf("NAK") + 3;
+        int codeEndIndex = response.indexOf(';', codeStartIndex);
+        if (codeEndIndex != -1) {
+            String errorCode = response.substring(codeStartIndex, codeEndIndex);
+            String description = "Unknown NAK code";
+            for (const auto& code : nakCodes) {
+                if (code.code == errorCode.toInt()) {
+                    description = code.description;
+                    break;
+                }
+            }
+            Serial.println("NAK Error: " + description);
+        } else {
+            Serial.println("Malformed NAK response: missing ';' terminator.");
+        }
     } else {
-        Serial.println("No valid response received.");
+        Serial.println("No valid response received or unrecognized prefix.");
     }
 }
 
@@ -206,7 +197,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     String response = readResponse();
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = false;
-        result.resultStr = parseError(response);
+        result.displayStr = parseResponse(response);
         return result;
     }
 
@@ -215,7 +206,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     response = readResponse();
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = false;
-        result.resultStr = parseError(response);
+        result.displayStr = parseResponse(response);
         return result;
     }
 
@@ -224,7 +215,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     response = readResponse();
     if (!response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = false;
-        result.resultStr = parseError(response);
+        result.displayStr = parseResponse(response);
         return result;
     }
 
@@ -233,7 +224,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     response = readResponse();
     if (!response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = false;
-        result.resultStr = parseError(response);
+        result.displayStr = parseResponse(response);
         return result;
     }
 }
@@ -269,14 +260,24 @@ void PressureTransducer::printPressure(String measureType) {
 
 String PressureTransducer::parseResponse(const String& response) {
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        int startIndex = response.indexOf("ACK") + 3; // Add three to move past "ACK"
+        int startIndex = response.indexOf("ACK") + 3;
         int endIndex = response.indexOf(';', startIndex);
-        return response.substring(startIndex, endIndex);
+        if (endIndex == -1) {
+            // Termination character not found, return standardized error message
+            return "NACKError";
+        } else {
+            // return core info
+            return response.substring(startIndex, endIndex);
+        }
     }
-    if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+    else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
         int startIndex = response.indexOf("NAK") + 3; // Add three to move past "NAK"
         int endIndex = response.indexOf(';', startIndex);
-        return response.substring(startIndex, endIndex);
+        if (endIndex != -1) { // found the termination character
+            return response.substring(startIndex, endIndex);
+        } else {
+            return "NACKError";
+        }
     } else {
         return "UnknownErr"; // unrecognized error
     }
@@ -292,42 +293,27 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
 
     if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true; // Indicate success
-        result.resultStr = parseResponse(response);
+        result.displayStr = parseResponse(response);
     } else {
         result.outcome = false; // Indicate failure to function caller
-
-        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-            // Extract output from response
-            int startIndex = response.indexOf("NAK");
-            int endIndex = response.indexOf(';', startIndex);
-            result.resultStr = response.substring(startIndex, endIndex);
-        } else {
-            response.resultStr = "UnknwnErr"; // unrecognized error
-        }
+        result.displayStr = parseResponse(response);
     }
     return result;
 }
 
 CommandResult PressureTransducer::setUserTag(String tag) {
     String command = "UT";
+    CommandResult result;
+
     sendCommand(command, tag);
     String response = readResponse();
 
-    CommandResult result;
-
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        result.outcome = SUCCESS;
+        result.outcome = true;
+        result.displayStr = parseResponse(response);
     } else {
-        result.outcome = false; // Indicate failure to caller
-
-        if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-            // Extract output from response
-            int startIndex = response.indexOf("NAK");
-            int endIndex = response.indexOf(';', startIndex);
-            result.resultStr = response.substring(startIndex, endIndex);
-        } else {
-            response.resultStr = "UnknownErr"; // unrecognized error
-        }
+        result.outcome = false; // Indicate failure to caller 
+        result.displayStr = parseResponse(response); // for the LCD
     }
     return result;
 }

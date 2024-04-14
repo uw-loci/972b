@@ -48,7 +48,7 @@ class PressureTransducer {
         static NAKCode nakCodes[];
         NACKResult decodeNAK(String codeStr);
         bool checkForLockError(String response);
-        unsigned long responseTimeout = 5000;   // Default timeout (ms)
+        unsigned long responseTimeout = 3000;   // Default timeout (ms)
         const int maxResponseLength = 256;      // Default maximum response character length
 };
 
