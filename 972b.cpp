@@ -22,6 +22,7 @@ int PressureTransducer::getNumNackCodes() {
 }
 
 void PressureTransducer::sendCommand(String command, String parameter) {
+    if (command.length() == 0) return;
     command.trim(); // Remove any leading or trailing whitespace
     
     String fullCommand = "@" + this->deviceAddress + command;
@@ -72,8 +73,34 @@ String PressureTransducer::readResponse() {
         }
     }
 
-    Serial.println("ERROR: Response timeout.");
-    return "";
+    return "ERROR:Incomplete response";
+}
+
+String PressureTransducer::parseResponse(const String& response) {
+    if (response.startsWith("Error")) return response;
+    
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+        int startIndex = response.indexOf("ACK") + 3;
+        int endIndex = response.indexOf(';', startIndex);
+        if (endIndex == -1) {
+            // Termination character not found, return standardized error message
+            return "NACKError";
+        } else {
+            // return core info
+            return response.substring(startIndex, endIndex);
+        }
+    }
+    else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
+        int startIndex = response.indexOf("NAK") + 3; // Add three to move past "NAK"
+        int endIndex = response.indexOf(';', startIndex);
+        if (endIndex != -1) { // found the termination character
+            return response.substring(startIndex, endIndex);
+        } else {
+            return "NACKError";
+        }
+    } else {
+        return "UnknownErr"; // unrecognized error
+    }
 }
 
 CommandResult PressureTransducer::status() {
@@ -252,31 +279,6 @@ void PressureTransducer::printPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
     Serial.println(response);
-}
-
-String PressureTransducer::parseResponse(const String& response) {
-    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-        int startIndex = response.indexOf("ACK") + 3;
-        int endIndex = response.indexOf(';', startIndex);
-        if (endIndex == -1) {
-            // Termination character not found, return standardized error message
-            return "NACKError";
-        } else {
-            // return core info
-            return response.substring(startIndex, endIndex);
-        }
-    }
-    else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
-        int startIndex = response.indexOf("NAK") + 3; // Add three to move past "NAK"
-        int endIndex = response.indexOf(';', startIndex);
-        if (endIndex != -1) { // found the termination character
-            return response.substring(startIndex, endIndex);
-        } else {
-            return "NACKError";
-        }
-    } else {
-        return "UnknownErr"; // unrecognized error
-    }
 }
 
 CommandResult PressureTransducer::setPressureUnits(String units) {

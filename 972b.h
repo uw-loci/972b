@@ -20,7 +20,7 @@ struct NACKResult {
 struct CommandResult {
     bool outcome;
     String resultStr;
-}
+};
 
 class PressureTransducer {
     public:
