@@ -2,7 +2,7 @@
 
 PressureTransducer::PressureTransducer(String addr, Stream& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
-      serialPort(serial) {
+      serialPort(serial), responseTimeout(3000) {
 }
 
 // List of possible NACK codes
@@ -72,12 +72,8 @@ String PressureTransducer::readResponse() {
         }
     }
 
-    if (!response.endsWith(";FF")) {
-        Serial.println("Error: Incomplete response.");
-        return "";
-    }
-    // TODO: Figure out what to do here with logging
-    return response;
+    Serial.println("ERROR: Response timeout.");
+    return "";
 }
 
 CommandResult PressureTransducer::status() {
