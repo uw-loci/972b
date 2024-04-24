@@ -35,7 +35,7 @@ class PressureTransducer {
         void printResponse(const String& response);
         void queryRS485Delay();
         CommandResult setupSetpoint(String setpoint, String direction, String hysteresis="", String enableMode);
-        String requestPressure(String measureType="PR3");
+        CommandResult requestPressure(String measureType="PR3");
         void printPressure(String measureType="PR3");
         String PressureTransducer::parseError(const String& response);
         void setResponseTimeout(unsigned long timeout);

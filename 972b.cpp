@@ -78,7 +78,7 @@ String PressureTransducer::readResponse() {
 
 String PressureTransducer::parseResponse(const String& response) {
     if (response.startsWith("Error")) return response;
-    
+
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         int startIndex = response.indexOf("ACK") + 3;
         int endIndex = response.indexOf(';', startIndex);
@@ -253,26 +253,20 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
 }
 
 // TODO: think about this function
-double PressureTransducer::requestPressure(String measureType) {
+CommandResult PressureTransducer::requestPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
 
-    // Error checking
-    if (response.indexOf("NAK") != -1){
-        return -1.0; // Error detected
-    }
-
-    // Extracting the pressure value from the response
-    int startIdx = response.indexOf("ACK") + 3;
-    int endIdx = response.indexOf(';', startIdx);
-    if (startIdx > 2 && endIdx > startIdx) {
-        String pressureStr = response.substring(startIdx, endIdx);
-        double pressure = pressureStr.toDouble(); // this method can convert scientific notation to a double representation
-        return pressure;
+    CommandResult result;
+    String parsedResponse = parseResponse(response);
+    if (response.startsWith("@" + this->deviceAddress + "ACK")) {
+        result.outcome = true;
+        result.resultStr = parsedResponse;
     } else {
-        return -1.0; // TODO: develop labview interface
+        result.outcome = false;
+        result.resultStr = parsedResponse;
     }
-    return response;
+    return result;
 }
 
 void PressureTransducer::printPressure(String measureType) {
