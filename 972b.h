@@ -42,6 +42,9 @@ class PressureTransducer {
         CommandResult setPressureUnits(String units="MBAR");
         CommandResult setUserTag(String tag="EBEAM1");
 
+        static const String INCOMPLETE_RESPONSE;
+        static const String RESPONSE_TOO_LONG;
+
     private:
         Stream& serialPort;
         String deviceAddress;
