@@ -252,7 +252,6 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     }
 }
 
-// TODO: think about this function
 CommandResult PressureTransducer::requestPressure(String measureType) {
     sendCommand(measureType + "?");
     String response = readResponse();
