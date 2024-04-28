@@ -37,11 +37,14 @@ class PressureTransducer {
         CommandResult setupSetpoint(String setpoint, String direction, String hysteresis="", String enableMode);
         CommandResult requestPressure(String measureType="PR3");
         void printPressure(String measureType="PR3");
-        String PressureTransducer::parseError(const String& response);
+        String parseResponse(const String& response);
         void setResponseTimeout(unsigned long timeout);
         CommandResult setPressureUnits(String units="MBAR");
         CommandResult setUserTag(String tag="EBEAM1");
 
+        static const String INCOMPLETE_RESPONSE;
+        static const String RESPONSE_TOO_LONG;
+        static double sciToDouble(String sciString);
     private:
         Stream& serialPort;
         String deviceAddress;
