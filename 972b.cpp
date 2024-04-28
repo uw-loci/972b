@@ -334,11 +334,6 @@ CommandResult PressureTransducer::requestPressure(String measureType) {
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.outcome = false;
         result.resultStr = response;
-    } else if (response.startsWith("@" + this->deviceAddress + "ACK")) {
-    if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
-        result.resultStr = response;
-        return result;
     }
 
     String parsedResponse = parseResponse(response);
@@ -372,14 +367,10 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
         result.outcome = false;
         result.resultStr = response;
     } else if (response.startsWith("@" + this->deviceAddress + "ACK")){
-    if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
-        result.resultStr = response;
-    } else if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true; // Indicate success
         result.displayStr = parseResponse(response);
     } else {
-        result.outcome = false; // Indicate failure to function caller
+        result.outcome = false; // Indicate NACK failure to function caller
         result.displayStr = parseResponse(response);
     }
     return result;
