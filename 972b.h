@@ -17,6 +17,7 @@ struct NACKResult {
     bool found;
 };
 
+
 struct CommandResult {
     bool outcome;
     String resultStr;

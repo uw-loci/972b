@@ -91,7 +91,8 @@ String PressureTransducer::parseResponse(const String& response) {
         int startIndex = response.indexOf("ACK") + 3;
         int endIndex = response.indexOf(';', startIndex);
         if (endIndex == -1) {
-            return "ERROR:ACK response malformed"; // Termination character not found
+            // Termination character not found, return standardized error message
+            return "NACKError";
         } else {
             // return core info
             return response.substring(startIndex, endIndex);
@@ -236,6 +237,7 @@ bool PressureTransducer::checkForLockError(String response) {
 
 CommandResult PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
     CommandResult result;
+    result.outcome = false; // Assume failure unless proven otherwise
 
     // Step 1: Set the setpoint value
     sendCommand("SP1", setpoint);
@@ -248,7 +250,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = false;
         result.displayStr = parseResponse(response);
-        return result;
+        return result; // Early return on failure
     }
 
     // Step 2: Set the setpoint direction (ABOVE/BELOW)
@@ -262,7 +264,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = false;
         result.displayStr = parseResponse(response);
-        return result;
+        return result; // Early return on failure
     }
 
     // Step 3: Set the setpoint hysteresis value
@@ -317,8 +319,8 @@ CommandResult PressureTransducer::requestPressure(String measureType) {
             result.outcome = false;
             result.resultStr = "Error:Invalid pressure reading";
         } else {
-            result.outcome = true;
-            result.resultStr = parsedResponse;
+        result.outcome = true;
+        result.resultStr = parsedResponse;
         }
     } else {
         result.outcome = false;
