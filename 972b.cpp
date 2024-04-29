@@ -3,9 +3,6 @@
 const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR:Incomplete response";
 const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR:Response too long";
 
-const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR:Incomplete response";
-const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR:Response too long";
-
 PressureTransducer::PressureTransducer(String addr, Stream& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
       serialPort(serial), responseTimeout(3000) {
@@ -73,19 +70,11 @@ String PressureTransducer::readResponse() {
                     break; // correctly formed response received
                 }
             } else {
-                Serial.println("RESPONSE_TOO_LONG");
-                return RESPONSE_TOO_LONG;
                 Serial.println(RESPONSE_TOO_LONG);
                 return RESPONSE_TOO_LONG;
             }
         }
     }
-
-    if (response.isEmpty()){
-        return INCOMPLETE_RESPONSE;
-    }
-
-    return response;
     if (response.isEmpty()) {
         return INCOMPLETE_RESPONSE; // time-out or incomplete response
     }
@@ -94,22 +83,20 @@ String PressureTransducer::readResponse() {
 
 String PressureTransducer::parseResponse(const String& response) {
     if (response.length() == 0) {
-        return "Error:None"
+        return "Error:None";
     }
 
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         return response;
     }
 
-
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         int startIndex = response.indexOf("ACK") + 3;
         int endIndex = response.indexOf(';', startIndex);
-        if (endIndex != -1) {
-            return response.substring(startIndex, endIndex);
+        if (endIndex != -1) { // found the termination character
+            return response.substring(startIndex, endIndex); // return core info
         } else {
-            // return core info
-            return "MalformedResponse"
+            return "Error:ACKmalformed";
         }
     }
     else if (response.startsWith("@" + this->deviceAddress + "NAK")) {
@@ -118,7 +105,7 @@ String PressureTransducer::parseResponse(const String& response) {
         if (endIndex != -1) { // found the termination character
             return response.substring(startIndex, endIndex);
         } else {
-            return "Error:NAK response malformed";
+            return "Error:NAKmalformed";
         }
     } else {
         return "UnknownErr"; // unrecognized error
@@ -127,26 +114,20 @@ String PressureTransducer::parseResponse(const String& response) {
 
 CommandResult PressureTransducer::status() {
     CommandResult result; // info variable to return to caller
+    result.outcome = false; // Assume failure unless proven otherwise
 
     sendCommand("T?");
     String response = readResponse();
 
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
-    }
-    else if (response.startsWith("@" + this->deviceAddress + "ACK")){
-        result.outcome = true
-        result.displayStr = parseResponse(response); // to print on the LCD
-    if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
-        result.resultStr = response;
+        return result; // Exit early
     } else if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = true; // Indicate success to function caller
         result.resultStr = parseResponse(response);
     } else {
-        result.outcome = false; // Indicate failure to function caller
-        result.displayStr = parseResponse(response);
+        // Indicate failure to function caller
+        result.resultStr = parseResponse(response);
     }
     return result;
 }
@@ -259,19 +240,16 @@ bool PressureTransducer::checkForLockError(String response) {
 CommandResult PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
     CommandResult result;
     result.outcome = false; // Assume failure unless proven otherwise
-    result.outcome = false; // Assume failure unless proven otherwise
 
     // Step 1: Set the setpoint value
     sendCommand("SP1", setpoint);
     String response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
         return result;
     }
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
-        result.displayStr = parseResponse(response);
-        return result; // Early return on failure
+        result.resultStr = parseResponse(response);
         return result; // Early return on failure
     }
 
@@ -284,8 +262,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
         return result;
     }
     if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
-        result.displayStr = parseResponse(response);
-        return result; // Early return on failure
+        result.resultStr = parseResponse(response);
         return result; // Early return on failure
     }
 
@@ -293,31 +270,24 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     sendCommand("SH1", hysteresis);
     response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
         return result;
     }
     if (!response.startsWith("@" + this->deviceAddress + "ACK")){
-        result.displayStr = parseResponse(response);
-        return result;
+        result.resultStr = parseResponse(response);
+        return result; // Early return on failure
     }
 
     // Step 4: Enable the setpoint
     sendCommand("EN1", enableMode);
     response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
-        return result;
+        return result; // Early return on failure
     }
-    if (!response.startsWith("@" + this->deviceAddress + "ACK")){
-        result.outcome = true;
-    }
-    result.displayStr = parseResponse(response);
-    return result;
-        result.outcome = false;
-        result.displayStr = parseResponse(response);
-        return result;
+    if (!response.startsWith("@" + this->deviceAddress + "ACK")) {
+        result.resultStr = parseResponse(response);
+        return result; // Early return on failure
     }
 
     // if everything is ok
@@ -331,23 +301,24 @@ CommandResult PressureTransducer::requestPressure(String measureType) {
     String response = readResponse();
 
     CommandResult result;
+    result.outcome = false; // Assume failure unless proven otherwise
+
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
+        return result;
     }
 
     String parsedResponse = parseResponse(response);
     if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         double pressureValue = sciToDouble(parsedResponse); // Convert to double
         if (isnan(pressureValue)) {
-            result.outcome = false;
             result.resultStr = "Error:Invalid pressure reading";
         } else {
-        result.outcome = true;
-        result.resultStr = parseResponse(response);;
+            result.outcome = true;
+            result.resultStr = parsedResponse;
+        }
     } else {
-        result.outcome = false;
-        result.resultStr = parseResponse(response);;
+        result.resultStr = parsedResponse;
     }
     return result;
 }
@@ -363,15 +334,16 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
     String response = readResponse();
 
     CommandResult result; // info to return to caller
+    result.outcome = false; // Initially assume the outcome is false
+
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
     } else if (response.startsWith("@" + this->deviceAddress + "ACK")){
         result.outcome = true; // Indicate success
-        result.displayStr = parseResponse(response);
+        result.resultStr = parseResponse(response);
     } else {
-        result.outcome = false; // Indicate NACK failure to function caller
-        result.displayStr = parseResponse(response);
+        // Indicate NACK failure to function caller
+        result.resultStr = parseResponse(response);
     }
     return result;
 }
@@ -379,19 +351,19 @@ CommandResult PressureTransducer::setPressureUnits(String units) {
 CommandResult PressureTransducer::setUserTag(String tag) {
     String command = "UT";
     CommandResult result;
+    result.outcome = false; // Assume failure unless proven otherwise
 
     sendCommand(command, tag);
     String response = readResponse();
 
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
-        result.outcome = false;
         result.resultStr = response;
     } else if (response.startsWith("@" + this->deviceAddress + "ACK")) {
         result.outcome = true;
-        result.displayStr = parseResponse(response);
+        result.resultStr = parseResponse(response);
     } else {
-        result.outcome = false; // Indicate failure to caller 
-        result.displayStr = parseResponse(response); // for the LCD
+        // Indicate failure to caller 
+        result.resultStr = parseResponse(response); // for the LCD
     }
     return result;
 }
