@@ -216,11 +216,11 @@ void PressureTransducer::printResponse(const String& response) { // to serial
     if (parsedResponse.startsWith("Error")) {
         Serial.println(parsedResponse); // Print the error message from parseResponse
     } else if (response.startsWith("@" + this->deviceAddress)) {
-        if (response.contains("ACK")) {
-            // If the response is an acknowledgment, print it directly
+        if (response.indexOf("ACK") != -1) {
+            // If the response is acknowledgment, print it directly
             Serial.println("ACK Response: " + parsedResponse);
-        } else if (response.contains("NAK")) {
-            // If the response is a negative acknowledgment, print it directly
+        } else if (response.indexOf("NAK") != -1) {
+            // The response is negative acknowledgment
             Serial.println("NAK Error: " + parsedResponse);
         }
     } else {
