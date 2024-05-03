@@ -3,7 +3,7 @@
 const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR:Incomplete response";
 const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR:Response too long";
 
-PressureTransducer::PressureTransducer(String addr, Stream& serial)
+PressureTransducer::PressureTransducer(String addr, HardwareSerial& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
       serialPort(serial), responseTimeout(3000) {
 }
@@ -75,7 +75,7 @@ String PressureTransducer::readResponse() {
             }
         }
     }
-    if (response.isEmpty()) {
+    if (response.length() == 0) {
         return INCOMPLETE_RESPONSE; // time-out or incomplete response
     }
     return response;
@@ -156,7 +156,7 @@ void PressureTransducer::changeBaudRate(String newBaudRate) {
 
     // Proceed to change the baud rate if valid
     serialPort.end(); // End current communication
-    serialPort.begin(newBaudRate); // Start with the new baud rate
+    serialPort.begin(newBaudRate.toInt()); // Start with the new baud rate
     Serial.println("Baud rate changed to: " + newBaudRate);
     String response = readResponse();
 

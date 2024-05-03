@@ -25,7 +25,7 @@ struct CommandResult {
 
 class PressureTransducer {
     public:
-        PressureTransducer(String addr=DEFAULT_ADDR, Stream& serial=Serial2);
+        PressureTransducer(String addr=DEFAULT_ADDR, HardwareSerial& serial=Serial2);
 
         static int getNumNackCodes();
         void sendCommand(String command="", String parameter="");
@@ -47,7 +47,7 @@ class PressureTransducer {
         static const String RESPONSE_TOO_LONG;
         static double sciToDouble(String sciString);
     private:
-        Stream& serialPort;
+        HardwareSerial& serialPort;
         String deviceAddress;
         static NAKCode nakCodes[];
         NACKResult decodeNAK(String codeStr);
