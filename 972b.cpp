@@ -1,7 +1,7 @@
 #include "972b.h"
 
-const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR:Incomplete response";
-const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR:Response too long";
+const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR Incomplete response";
+const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR Response too long";
 
 PressureTransducer::PressureTransducer(String addr, HardwareSerial& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
@@ -76,6 +76,7 @@ String PressureTransducer::readResponse() {
         }
     }
     if (response.length() == 0) {
+        Serial.println("Response incomplete or timeout.");
         return INCOMPLETE_RESPONSE; // time-out or incomplete response
     }
     return response;
