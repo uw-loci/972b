@@ -110,6 +110,7 @@ String PressureTransducer::parseResponse(const String& response) {
             return "Error:NAKmalformed";
         }
     } else {
+        Serial.println(response);
         return "UnknownErr"; // unrecognized error
     }
 }
