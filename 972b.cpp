@@ -121,7 +121,7 @@ CommandResult PressureTransducer::status() {
     Serial.println("Sending status query");
     sendCommand("T?");
     String response = readResponse();
-    Serial.println("Received status response");
+    Serial.print("Received status response:"); Serial.println(response);
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.resultStr = response;
         return result; // Exit early
