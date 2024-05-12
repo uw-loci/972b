@@ -1,7 +1,7 @@
 #include "972b.h"
 
-const String PressureTransducer::INCOMPLETE_RESPONSE = "ERROR Incomplete response";
-const String PressureTransducer::RESPONSE_TOO_LONG = "ERROR Response too long";
+const String PressureTransducer::INCOMPLETE_RESPONSE = "Incomplete response";
+const String PressureTransducer::RESPONSE_TOO_LONG = "ERRexceedlength";
 
 PressureTransducer::PressureTransducer(String addr, HardwareSerial& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
@@ -35,6 +35,7 @@ void PressureTransducer::sendCommand(String command, String parameter) {
         fullCommand += "!" + parameter + ";FF";
     }
     serialPort.print(fullCommand);
+    serialPort.flush();
     Serial.println("Sent command: " + fullCommand);
 }
 
@@ -116,10 +117,10 @@ String PressureTransducer::parseResponse(const String& response) {
 CommandResult PressureTransducer::status() {
     CommandResult result; // info variable to return to caller
     result.outcome = false; // Assume failure unless proven otherwise
-
+    Serial.println("Sending status query");
     sendCommand("T?");
     String response = readResponse();
-
+    Serial.println("Received status response");
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.resultStr = response;
         return result; // Exit early
