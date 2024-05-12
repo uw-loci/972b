@@ -1,7 +1,7 @@
 #include "972b.h"
 
-const String PressureTransducer::INCOMPLETE_RESPONSE = "Incomplete response";
-const String PressureTransducer::RESPONSE_TOO_LONG = "ERRexceedlength";
+const String PressureTransducer::INCOMPLETE_RESPONSE = "IncompleteResponse";
+const String PressureTransducer::RESPONSE_TOO_LONG = "LengthExceeded";
 
 PressureTransducer::PressureTransducer(String addr, HardwareSerial& serial)
     : deviceAddress(addr.length() > 0 ? addr : DEFAULT_ADDR), 
