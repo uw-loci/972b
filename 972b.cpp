@@ -1,6 +1,6 @@
 #include "972b.h"
 
-const String PressureTransducer::INCOMPLETE_RESPONSE = "IncompleteResponse";
+const String PressureTransducer::INCOMPLETE_RESPONSE = "ResponseTimeout";
 const String PressureTransducer::RESPONSE_TOO_LONG = "LengthExceeded";
 
 PressureTransducer::PressureTransducer(String addr, HardwareSerial& serial)
