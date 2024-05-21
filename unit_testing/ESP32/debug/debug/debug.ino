@@ -4,6 +4,15 @@ unsigned long startTime = 0;
 bool isDwelling = false;
 double pressure = 1013.0; // Start at high pressure
 
+enum FailureMode {
+  NO_FAILURE,
+  MICROPIRANI_FAILURE,
+  COLD_CATHODE_FAILURE,
+  SAFETY_RELAY_FAILURE
+};
+
+FailureMode currentFailureMode = SAFETY_RELAY_FAILURE;
+
 void setup() {
   Serial.begin(9600);
   Serial2.begin(9600, SERIAL_8N1, 16, 17);
@@ -19,6 +28,33 @@ void loop() {
     if (receivedData.endsWith(";FF")) {
       respondToCommand(receivedData);
       receivedData = "";
+    }
+  }
+
+  // Simulate sensor behavior (pressure change) as before
+  simulatePressureChange();
+}
+
+void simulatePressureChange() {
+  unsigned long currentTime = millis();
+  unsigned long elapsedTime = currentTime - startTime;
+
+  // Check if we are in the dwelling phase or not
+  if (!isDwelling) {
+    if (elapsedTime < 15000) { // First 15 seconds drop fast to 1.41
+      pressure = 1013.0 - (1013.0 - 1.41) * (elapsedTime / 15000.0);
+    } else {
+      isDwelling = true;
+      startTime = currentTime; // Reset start time for dwelling
+    }
+  } else {
+    if (elapsedTime < 5000) { // Dwell for 5 seconds oscillating around 1.41
+      pressure = 1.41 + 0.05 * sin(2 * PI * elapsedTime / 5000.0);
+    } else if (elapsedTime < 10000) { // Next 5 seconds oscillate around 1013
+      pressure = 1013.0 + 5 * sin(2 * PI * (elapsedTime - 5000) / 5000.0);
+    } else {
+      isDwelling = false; // Reset to drop fast again
+      startTime = currentTime;
     }
   }
 }
@@ -43,28 +79,6 @@ void respondToCommand(String command) {
   Serial.print("Received Command: ");
   Serial.println(command);
 
-  unsigned long currentTime = millis();
-  unsigned long elapsedTime = currentTime - startTime;
-
-  // Check if we are in the dwelling phase or not
-  if (!isDwelling) {
-    if (elapsedTime < 15000) { // First 15 seconds drop fast to 1.41
-      pressure = 1013.0 - (1013.0 - 1.41) * (elapsedTime / 15000.0);
-    } else {
-      isDwelling = true;
-      startTime = currentTime; // Reset start time for dwelling
-    }
-  } else {
-    if (elapsedTime < 5000) { // Dwell for 5 seconds oscillating around 1.41
-      pressure = 1.41 + 0.05 * sin(2 * PI * elapsedTime / 5000.0);
-    } else if (elapsedTime < 10000) { // Next 5 seconds oscillate around 1013
-      pressure = 1013.0 + 5 * sin(2 * PI * (elapsedTime - 5000) / 5000.0);
-    } else {
-      isDwelling = false; // Reset to drop fast again
-      startTime = currentTime;
-    }
-  }
-
   if (command == "@253PR3?;FF") {
     String pressureResponse = "@253ACK" + formatScientific(pressure) + ";FF"; 
     Serial2.print(pressureResponse);
@@ -78,7 +92,7 @@ void respondToCommand(String command) {
     } else if (command == "@253UT!EBEAM1;FF") {
       response = "@253ACKEBEAM1;FF";
     } else if (command == "@253T?;FF") {
-      response = "@253ACKO;FF";
+      response = getStatusResponse();
     } else if (command == "@253SP1!2.00E+0;FF") {
       response = "@253ACK2.00E+0;FF";
     } else if (command == "@253SD1!BELOW;FF") {
@@ -92,4 +106,22 @@ void respondToCommand(String command) {
     Serial.print("Responded with: ");
     Serial.println(response);
   }
+}
+
+String getStatusResponse() {
+  switch (currentFailureMode) {
+    case MICROPIRANI_FAILURE:
+      return "@253ACKM;FF";
+    case COLD_CATHODE_FAILURE:
+      return "@253ACKC;FF";
+    case SAFETY_RELAY_FAILURE:
+      return "@253ACKR;FF";
+    case NO_FAILURE:
+    default:
+      return "@253ACKO;FF";
+  }
+}
+
+void simulateFailure(FailureMode mode) {
+  currentFailureMode = mode;
 }
