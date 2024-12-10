@@ -240,12 +240,22 @@ bool PressureTransducer::checkForLockError(String response) {
     return false; // No lock error
 }
 
-CommandResult PressureTransducer::setupSetpoint(String setpoint, String direction, String hysteresis, String enableMode) {
+CommandResult PressureTransducer::setupSetpoint(int setpointNumber,
+                                                String setpoint, 
+                                                String direction, 
+                                                String hysteresis, 
+                                                String enableMode) {
     CommandResult result;
     result.outcome = false; // Assume failure unless proven otherwise
 
+    // Construct command prefixes based on setpoint number
+    String spCmd = "SP" + String(setpointNumber);
+    String sdCmd = "SD" + String(setpointNumber);
+    String shCmd = "SH" + String(setpointNumber);
+    String enCmd = "EN" + String(setpointNumber);
+
     // Step 1: Set the setpoint value
-    sendCommand("SP1", setpoint);
+    sendCommand(spCmd, setpoint);
     String response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.resultStr = response;
@@ -257,7 +267,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     }
 
     // Step 2: Set the setpoint direction (ABOVE/BELOW)
-    sendCommand("SD1", direction);
+    sendCommand(sdCmd, direction);
     response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.outcome = false;
@@ -270,7 +280,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     }
 
     // Step 3: Set the setpoint hysteresis value
-    sendCommand("SH1", hysteresis);
+    sendCommand(shCmd, hysteresis);
     response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.resultStr = response;
@@ -282,7 +292,7 @@ CommandResult PressureTransducer::setupSetpoint(String setpoint, String directio
     }
 
     // Step 4: Enable the setpoint
-    sendCommand("EN1", enableMode);
+    sendCommand(enCmd, enableMode);
     response = readResponse();
     if (response == INCOMPLETE_RESPONSE || response == RESPONSE_TOO_LONG) {
         result.resultStr = response;
